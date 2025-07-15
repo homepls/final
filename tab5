@@ -1,0 +1,14 @@
+with st.expander("🎁 추천 시스템: 자주 사는 항목 기반 추천"):
+    st.markdown("최근 자주 구매한 카테고리/상품을 기반으로 다른 유사한 아이템을 추천합니다.")
+
+    # 가장 많이 산 카테고리 찾기
+    most_bought = filtered_df["Category"].mode().iloc[0]
+    st.write(f"🛍️ 이 고객군이 가장 많이 산 카테고리: `{most_bought}`")
+
+    # 해당 카테고리를 산 사람들의 다른 상품 추천
+    similar_users = df[df["Category"] == most_bought]
+    recommended_items = similar_users["Item Purchased"].value_counts().head(5)
+
+    st.write("📦 추천 상품:")
+    for item, count in recommended_items.items():
+        st.markdown(f"- {item} ({count}명 구매)")
