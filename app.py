@@ -105,3 +105,78 @@ with tab3:
     st.pyplot(fig)
 
     st.caption("🔍 예: 'Purchase Amount'와 나이 또는 구매 빈도 간의 상관관계 등 확인 가능")
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+
+with st.expander("🤖 머신러닝: 별점 예측"):
+    st.markdown("이 분석은 고객 정보와 구매 특성으로부터 별점을 예측합니다.")
+    
+    ml_df = filtered_df.copy()
+    ml_df = ml_df.dropna(subset=['Review Rating'])  # 별점 없는 경우 제거
+
+    # 숫자로 변환
+    ml_df_encoded = pd.get_dummies(ml_df[["Age", "Gender", "Category", "Payment Method", "Shopping Channel"]])
+    ml_df_encoded["Purchase"] = ml_df["Purchase Amount (USD)"]
+    X = ml_df_encoded
+    y = ml_df["Review Rating"]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+    model = RandomForestRegressor()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    rmse = mean_squared_error(y_test, y_pred, squared=False)
+
+    st.write(f"예측 RMSE (낮을수록 정확): {rmse:.2f}")
+
+    # 사용자 입력으로 예측 테스트
+    st.markdown("### 🎯 별점 예측 테스트")
+    test_input = {
+        "Age": st.slider("나이", 18, 70, 30),
+        "Purchase": st.slider("구매금액", 10, 1000, 100),
+        "Gender_Female": st.radio("성별", ["Female", "Male"]) == "Female",
+        "Category_Clothing": st.radio("카테고리", ["Clothing", "Accessories", "Shoes"]) == "Clothing",
+        "Payment Method_Credit Card": st.radio("결제 방식", ["Credit Card", "Paypal", "Cash"]) == "Credit Card",
+        "Shopping Channel_Online": st.radio("쇼핑 채널", ["Online", "Offline"]) == "Online"
+    }
+
+    test_df = pd.DataFrame([test_input])
+    y_test_pred = model.predict(test_df)[0]
+    st.success(f"예측 별점: {y_test_pred:.2f} / 5.0")
+
+with st.expander("🎁 추천 시스템: 자주 사는 항목 기반 추천"):
+    st.markdown("최근 자주 구매한 카테고리/상품을 기반으로 다른 유사한 아이템을 추천합니다.")
+
+    # 가장 많이 산 카테고리 찾기
+    most_bought = filtered_df["Category"].mode().iloc[0]
+    st.write(f"🛍️ 이 고객군이 가장 많이 산 카테고리: `{most_bought}`")
+
+    # 해당 카테고리를 산 사람들의 다른 상품 추천
+    similar_users = df[df["Category"] == most_bought]
+    recommended_items = similar_users["Item Purchased"].value_counts().head(5)
+
+    st.write("📦 추천 상품:")
+    for item, count in recommended_items.items():
+        st.markdown(f"- {item} ({count}명 구매)")
+with st.expander("⭐ 리뷰 별점에 따른 행동 분석"):
+    st.markdown("별점(Review Rating) 분포와 관련된 행동 특성을 분석합니다.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("1. 별점 분포")
+        fig, ax = plt.subplots()
+        sns.histplot(filtered_df["Review Rating"].dropna(), bins=5, kde=True, ax=ax)
+        st.pyplot(fig)
+
+    with col2:
+        st.subheader("2. 결제 수단에 따른 별점 평균")
+        rating_by_payment = filtered_df.groupby("Payment Method")["Review Rating"].mean()
+        st.bar_chart(rating_by_payment)
+
+    st.subheader("3. 카테고리별 평균 별점")
+    rating_by_cat = filtered_df.groupby("Category")["Review Rating"].mean().sort_values(ascending=False)
+    fig, ax = plt.subplots()
+    sns.barplot(x=rating_by_cat.index, y=rating_by_cat.values, palette="Blues_d", ax=ax)
+    ax.set_ylabel("평균 별점")
+    st.pyplot(fig)
