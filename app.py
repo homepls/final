@@ -16,7 +16,8 @@ st.title("🛍️ 고급 소비자 행동 분석 대시보드")
 @st.cache_data
 def load_data():
     df = pd.read_csv("shopping_behavior_updated.csv")
-    df['AgeGroup'] = pd.cut(df['Age'], bins=[18, 25, 35, 45, 60, 100], labels=["18-24", "25-34", "35-44", "45-59", "60+"])
+    df['AgeGroup'] = pd.cut(df['Age'], bins=[18, 25, 35, 45, 60, 100],
+                            labels=["18-24", "25-34", "35-44", "45-59", "60+"])
     return df
 
 df = load_data()
@@ -26,12 +27,12 @@ df = load_data()
 # ----------------------
 st.sidebar.header("🔍 필터")
 gender = st.sidebar.multiselect("성별 선택", options=df["Gender"].unique(), default=df["Gender"].unique())
-channel = st.sidebar.multiselect("쇼핑 채널", options=df["Shopping Channel"].unique(), default=df["Shopping Channel"].unique())
+channel = st.sidebar.multiselect("배송 방식 (Shipping Type)", options=df["Shipping Type"].unique(), default=df["Shipping Type"].unique())
 payment = st.sidebar.multiselect("결제 수단", options=df["Payment Method"].unique(), default=df["Payment Method"].unique())
 
 filtered_df = df[
     (df["Gender"].isin(gender)) &
-    (df["Shopping Channel"].isin(channel)) &
+    (df["Shipping Type"].isin(channel)) &
     (df["Payment Method"].isin(payment))
 ]
 
@@ -57,9 +58,9 @@ with tab1:
         st.pyplot(fig)
 
     with col2:
-        st.subheader("2. 쇼핑 채널 비율")
+        st.subheader("2. 배송 방식 비율")
         fig, ax = plt.subplots()
-        sns.countplot(data=filtered_df, x="Shopping Channel", palette="pastel", ax=ax)
+        sns.countplot(data=filtered_df, x="Shipping Type", palette="pastel", ax=ax)
         st.pyplot(fig)
 
     st.subheader("3. 연령대별 상품 선호 (Stacked Bar)")
@@ -103,5 +104,4 @@ with tab3:
     sns.heatmap(corr, annot=True, cmap="YlGnBu", ax=ax)
     st.pyplot(fig)
 
-    st.caption("🔍 예: 'Purchase Amount'와 나이 또는 연령대 간의 상관관계 등 확인 가능")
-
+    st.caption("🔍 예: 'Purchase Amount'와 나이 또는 구매 빈도 간의 상관관계 등 확인 가능")
