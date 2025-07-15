@@ -1,0 +1,21 @@
+with st.expander("⭐ 리뷰 별점에 따른 행동 분석"):
+    st.markdown("별점(Review Rating) 분포와 관련된 행동 특성을 분석합니다.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("1. 별점 분포")
+        fig, ax = plt.subplots()
+        sns.histplot(filtered_df["Review Rating"].dropna(), bins=5, kde=True, ax=ax)
+        st.pyplot(fig)
+
+    with col2:
+        st.subheader("2. 결제 수단에 따른 별점 평균")
+        rating_by_payment = filtered_df.groupby("Payment Method")["Review Rating"].mean()
+        st.bar_chart(rating_by_payment)
+
+    st.subheader("3. 카테고리별 평균 별점")
+    rating_by_cat = filtered_df.groupby("Category")["Review Rating"].mean().sort_values(ascending=False)
+    fig, ax = plt.subplots()
+    sns.barplot(x=rating_by_cat.index, y=rating_by_cat.values, palette="Blues_d", ax=ax)
+    ax.set_ylabel("평균 별점")
+    st.pyplot(fig)
