@@ -91,7 +91,7 @@ with tab4:
         st.warning("❌ 선택한 조건에 해당하는 별점 데이터가 없습니다. 필터를 넓혀보세요.")
     else:
         ml_df = filtered_df.dropna(subset=['Review Rating'])
-        ml_df_encoded = pd.get_dummies(ml_df[["Age", "Gender", "Category", "Payment Method", "Shopping Channel"]])
+        ml_df_encoded = pd.get_dummies(ml_df[["Age", "Gender", "Category", "Payment Method"]])
         ml_df_encoded["Purchase"] = ml_df["Purchase Amount (USD)"]
         X = ml_df_encoded
         y = ml_df["Review Rating"]
